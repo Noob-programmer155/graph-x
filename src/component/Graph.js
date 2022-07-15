@@ -13,7 +13,7 @@ function Container(props) {
         animatedNumeration={animatedNumeration} values={values} {...attr} />;
       break;
     case 'stacked-bar':
-      return <StackedBar color={color} mainColor={mainColor} animated={animated}
+    return <StackedBar color={color} mainColor={mainColor} animated={animated}
         animatedNumeration={animatedNumeration} values={values} {...attr} />;
       break;
     case 'line':
@@ -68,12 +68,12 @@ function Container(props) {
 
 export default function Graph(props) {
   const {color,mainColor,type,expanded,animated,animatedNumeration,values,width,height,border,background,...attr} = props
-  var currentX;
   var id = `container-uwh1sj-${Math.random()*100000}`;
   var panel;
   useEffect(() => {
     panel = document.getElementById(id)
   },[])
+  var currentX;
   const expandX = (e) => {
     const dx = currentX - e.x;
     currentX = e.x;
@@ -83,7 +83,7 @@ export default function Graph(props) {
   const expandY = (e) => {
     const dy = currentY - e.y;
     currentY = e.y;
-    panel.style.width = `${parseInt(panel.offsetWidth + dy)} px`;
+    panel.style.height = `${parseInt(panel.offsetWidth + dy)} px`;
   }
 
   const mouseEventX = (e) => {
