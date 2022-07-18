@@ -1,9 +1,10 @@
-import React,{useEffect} from 'react';
+import React,{useMemo} from 'react';
 import {GenerateColorDark,GenerateColorLight} from './../utils/colorChange'
+import {animateValue} from './../utils/numberCounter'
 
 export default function Pie(props) {
-  const {ky,color,mainColor,alpha,animation,animationDelay,values,onClickSlice,format,
-    onHoverSlice,theme,label,labelAlign,propsLabel,propsLabelSlice,propsMain,group} = props;
+  const {alpha,animation,animationDelay,values,onClickSlice,format,rootCircleColor,
+    onHoverSlice,theme,label,labelAlign,propsLabel,propsInfoContainer,propsPieContainer,group} = props;
   const idContainer = `container-pie-chart-${Math.random()*100000}`
   const constructElem = (lbl3,data,persen) =>
     `<table>
@@ -49,9 +50,8 @@ export default function Pie(props) {
     } else {
       const lbl = document.getElementById(`label-${idContainer}`)
       lbl.style.display = 'block'
-      const loc = document.getElementById(`container-main-${idContainer}`).getBoundingClientRect();
-      lbl.style.top = `${e.clientY - loc.top}px`
-      lbl.style.left = `${e.clientX - loc.left}px`
+      lbl.style.top = `${e.clientY}px`
+      lbl.style.left = `${e.clientX}px`
       lbl.innerHTML = `${constructElem(elem.getAttribute('data-label'),elem.getAttribute('data-numeric'),elem.getAttribute('data-persen'))}`
       lbl.style.color = elem.getAttribute('data-color')
       lbl.style.backgroundColor = elem.getAttribute('data-backgroundcolor')
@@ -78,9 +78,8 @@ export default function Pie(props) {
         lbl.style.backgroundColor = elem.getAttribute('data-backgroundcolor')
         lbl.style.border = elem.getAttribute('data-border')
       }
-      const loc = document.getElementById(`container-main-${idContainer}`).getBoundingClientRect();
-      lbl.style.top = `${e.clientY - loc.top}px`
-      lbl.style.left = `${e.clientX - loc.left}px`
+      lbl.style.top = `${e.clientY}px`
+      lbl.style.left = `${e.clientX}px`
     }
   }
 
@@ -99,19 +98,22 @@ export default function Pie(props) {
   values.map((item)=>{
     totalData += item.data
   })
+
   const funPie = () => {
     var angle = 0.0;
 
     return values.map((val,i) => {
       var col;
       var mainCol;
-      if (!mainCol) {
-        if (theme === 'dark') {
-          mainCol = GenerateColorDark();
-          col = 'white';
-        } else {
-          mainCol = GenerateColorLight();
-          col = 'black';
+      if (!val.color && !val.backgroundColor) {
+        if (!mainCol) {
+          if (theme === 'dark') {
+            mainCol = GenerateColorDark();
+            col = 'white';
+          } else {
+            mainCol = GenerateColorLight();
+            col = '#242424';
+          }
         }
       }
       const uy = () => {
@@ -120,7 +122,8 @@ export default function Pie(props) {
       return(
         <>
           <circle key={i} id={`pie-chart-${idContainer}-${i}`} fill="none" r="25%" cx="50%" cy="50%" strokeWidth='50%'
-            stroke={(mainColor)?mainColor[i]:`rgba(${mainCol[0]},${mainCol[1]},${mainCol[2]},${(alpha)?alpha:1})`}
+            stroke={(val.mainColor)?val.mainColor:mainCol}
+            strokeOpacity={(alpha)?alpha:1}
             strokeDasharray={val.data/totalData*201+' 201'}
             strokeDashoffset={`-${201-(angle+val.data/totalData*201)}`}
             style={{zIndex:100000, transition:(animation)?'all 1s cubic-bezier(0.07,0.97,1.0,1.0)':'none',pointerEvents:'auto'}}
@@ -129,9 +132,9 @@ export default function Pie(props) {
             data-label={val.label}
             data-numeric={val.data}
             data-persen={(val.data/totalData*100)}
-            data-color={(color)?color:col}
-            data-backgroundcolor={(mainColor)?mainColor[i]:`rgb(${mainCol[0]},${mainCol[1]},${mainCol[2]})`}
-            data-border={(mainColor)?`.3rem solid ${mainColor[i]}`:`.3rem solid rgba(${255},${255},${255},.7)`}
+            data-color={(val.color)?val.color:col}
+            data-backgroundcolor={(val.mainColor)?val.mainColor:mainCol}
+            data-border={(theme === 'dark')?`.3rem solid rgba(${255},${255},${255},.7)`:`.3rem solid rgba(${91},${91},${91},.7)`}
             onMouseLeave={mouseLeave}></circle>
             {uy()}
         </>)
@@ -164,6 +167,10 @@ export default function Pie(props) {
               main.style.opacity = 1
               main.style.top = `${0}px`
             }
+            const counter = document.getElementById(`main-label-counter-${idContainer}`);
+            if (counter) {
+              animateValue(counter,0,1,Number(totalData).toFixed(format),animationDelay)
+            }
           }, animationDelay);
         }
       }
@@ -171,35 +178,39 @@ export default function Pie(props) {
     iu = 1;
   }
 
-  const labelMain = () => (
-    (label)? (
-        <>
-          <div id={`main-label-${idContainer}`} style={(propsLabel)?propsLabel:{
-            width: '100%', position: 'relative', textAlign: 'center',color: (color)?color:(theme === 'dark')?'black':'white',marginTop: (labelAlign === 'top')?0:'3rem',
-            marginBottom: (labelAlign === 'bottom')?0:'3rem',fontSize: '2rem', fontWeight: 'bold', fontFamily: 'Georgia',
-            transition: (animation)? 'opacity 1s cubic-bezier(0.07,0.97,1.0,1.0), top 1s cubic-bezier(0.07,0.97,1.0,1.0)':'none',
-            opacity: (animation)?0:1,top: (animation)?'-5rem':0
-          }}>{label}<br/><span style={{fontSize: '1.5rem'}}>Total Data : {Number(totalData).toFixed(format)}</span></div>
-          {deck2()}
-        </>
-    ):null
-  )
+  const style = {
+    fontSize: '15px'
+  }
 
-  return(
-      <div  id={`container-main-${idContainer}`} key={ky} style={{position:'relative',pointerEvents:'none'}}>
+  const labelMain = () => (
+      (label)? (
+          <>
+            <div id={`main-label-${idContainer}`} style={{
+              width: '100%', position: 'relative', textAlign: 'center',color: (theme === 'dark')?'#5B5B5B':'white',marginTop: (labelAlign === 'top')?0:'3rem',
+              marginBottom: (labelAlign === 'bottom')?0:'3rem',fontSize: '25px', fontWeight: 'bold', fontFamily: 'Georgia',
+              transition: (animation)? 'all 1s cubic-bezier(0.07,0.97,1.0,1.0)':'none',
+              opacity: (animation)?0:1,top: (animation)?'-5rem':0, ...propsLabel
+            }}><span>{label}</span><br/><span style={style}>Total Data : <span id={`main-label-counter-${idContainer}`}></span></span></div>
+            {deck2()}
+          </>
+      ):null
+    )
+
+  return useMemo(() => (
+      <div id={`container-main-${idContainer}`} style={{position:'relative',pointerEvents:'none'}}>
         {
           (labelAlign === 'top')?labelMain():null
         }
         <svg id={idContainer} viewBox='0 0 128 128' style={{
-          position:'absolute',display:'flex', width: '100%', ...propsMain, borderRadius: '50%',
-          backgroundColor: 'transparent', pointerEvents:'none'
+          position:'absolute',display:'flex', width: '100%', ...propsPieContainer,
+          borderRadius: '50%',backgroundColor: 'transparent', pointerEvents:'none'
         }}>
           <circle fill="transparent" r="50%" cx="50%" cy="50%"
             style={{pointerEvents:'none'}}/>
           {
             (group)?(
               <>
-                <circle id={`pie-chart-${idContainer}-x`} fill="white" r={(animation)? "0%":"50%"} cx="50%" cy="50%"
+                <circle id={`pie-chart-${idContainer}-x`} fill={rootCircleColor} r={(animation)? "0%":"50%"} cx="50%" cy="50%"
                   style={{pointerEvents:'none',transition: (animation)? 'r 1s cubic-bezier(0.07,0.97,1.0,1.0)':'none'}}/>
                 {deck()}
               </>
@@ -208,14 +219,14 @@ export default function Pie(props) {
           {funPie()}
         </svg>
         <div id={`label-${idContainer}`} style={{
-          padding: '.5rem',zIndex: 1000000, display:'none', textAlign: 'center', position: 'absolute', pointerEvents: 'none',
-          transition: (animation)?'color .5s ease, background-color .5s ease':'none', ...propsLabelSlice
+          padding: '.5rem',zIndex: 1000000, display:'none', textAlign: 'center', position: 'fixed', pointerEvents: 'none',
+          transition: (animation)?'color .5s ease, background-color .5s ease':'none', ...propsInfoContainer
         }}></div>
         {
           (labelAlign === 'bottom')?labelMain():null
         }
       </div>
-  )
+  ),[values,propsPieContainer])
 }
 
 Pie.defaultProps = {
@@ -223,5 +234,6 @@ Pie.defaultProps = {
   animation: true,
   animationDelay: 1000,
   labelAlign: 'top',
-  format: 2
+  format: 2,
+  rootCircleColor: '#ffff',
 }

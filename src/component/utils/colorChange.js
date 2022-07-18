@@ -1,31 +1,27 @@
 import React from 'react';
 
 export function GenerateColorDark() {
-  var rgb = [200,200,200];
-  var rt = parseInt(Math.random()*2.5)
-  return rgb.map((elem,i) => {
-    if(rt > 2) {
-      rt = 2;
+  var hex = [3,4,5,6,7,8,9,'A'];
+  var val = '#'
+  for (var i = 0; i < 6; i++) {
+    const l = Math.floor(Math.random()*8)
+    if (l > 7) {
+      l = 7
     }
-    if (i === rt) {
-      return parseInt(elem*Math.random());
-    } else {
-      return 200 - parseInt(elem*Math.random());
-    }
-  });
+    val += hex[l]
+  }
+  return val;
 }
 
 export function GenerateColorLight() {
-  var rgb = [75,75,75];
-  var rt = parseInt(Math.random()*2.5)
-  return rgb.map((elem,i) => {
-    if(rt > 2) {
-      rt = 2;
+  var hex = [8,9,'A','B','C','D','E','F'];
+  var val = '#'
+  for (var i = 0; i < 6; i++) {
+    const l = Math.floor(Math.random()*8)
+    if (l > 7) {
+      l = 7
     }
-    if (i === rt) {
-      return 150 + parseInt(elem*Math.random());
-    } else {
-      return 225 - parseInt(elem*Math.random());
-    }
-  });
+    val += hex[l]
+  }
+  return val;
 }
