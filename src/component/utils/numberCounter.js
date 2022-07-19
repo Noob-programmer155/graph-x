@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function animateValue(obj, start, step, end, duration) {
+export function animateValue(obj, start, step, end, duration, format) {
   let startTimestamp = null;
   const step1 = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
@@ -9,7 +9,7 @@ export function animateValue(obj, start, step, end, duration) {
       obj.innerHTML = Math.floor(step * (progress * (end - start) + start));
       window.requestAnimationFrame(step1);
     } else {
-      obj.innerHTML = (step * (progress * (end - start) + start)).toFixed(2);
+      obj.innerHTML = (step * (progress * (end - start) + start)).toFixed(format);
     }
   };
   window.requestAnimationFrame(step1);
